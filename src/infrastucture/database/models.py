@@ -6,15 +6,17 @@ from sqlalchemy import String, Boolean, ForeignKey, Numeric, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 
-from src.core.value_objects.order_status import OrderStatus
-from src.core.value_objects.payment_status import PaymentStatus
+from src.domain.order.value_objects.order_status import OrderStatus
+from src.domain.payment.value_objects.payment_status import PaymentStatus
 from src.infrastucture.database.base import Base
 from src.infrastucture.database.mixins import IDMixin, TimestampMixin
 
 
 # todo: add relationships
 
-class User(Base, IDMixin, TimestampMixin):
+class UserORM(Base, IDMixin, TimestampMixin):
+    __tablename__ = "users"
+
     email: Mapped[str] = mapped_column(
         String(255),
         unique=True,
@@ -29,7 +31,9 @@ class User(Base, IDMixin, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
-class Order(Base, IDMixin, TimestampMixin):
+class OrderORM(Base, IDMixin, TimestampMixin):
+    __tablename__ = "orders"
+
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id"),
@@ -44,15 +48,12 @@ class Order(Base, IDMixin, TimestampMixin):
     )
 
 
-class Payment(Base, IDMixin, TimestampMixin):
+class PaymentORM(Base, IDMixin, TimestampMixin):
+    __tablename__ = "payments"
+
     order_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("orders.id"),
-        nullable=False
-    )
-    user_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("users.id"),
         nullable=False
     )
     amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
@@ -64,7 +65,7 @@ class Payment(Base, IDMixin, TimestampMixin):
     )
 
     confirmation_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    payment_method_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    payment_method: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     refundable: Mapped[bool] = mapped_column(Boolean, default=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     payment_metadata: Mapped[dict] = mapped_column(JSONB, default=dict)

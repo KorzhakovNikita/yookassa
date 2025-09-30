@@ -3,9 +3,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.config import settings
+from src.api.v1.routers.payments import router as payment_router
 
 app = FastAPI(title="YookassaService")
 
+app.include_router(payment_router)
 # Middleware
 app.add_middleware(
     CORSMiddleware,
@@ -14,6 +16,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 if __name__ == "__main__":
     uvicorn.run(

@@ -3,28 +3,28 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from src.core.exceptions.payment_error import InvalidPaymentStatusError
-from src.core.interfaces.models import AbstractModel
-from src.core.value_objects.payment_status import PaymentStatus
+from src.domain.payment.exceptions import InvalidPaymentStatusError
+from src.domain.shared.entities.base import Entity
+from src.domain.payment.value_objects.payment_status import PaymentStatus
+from src.domain.shared.value_objects.money import Money
 
 
 @dataclass
-class Payment(AbstractModel):
-
+class Payment(Entity):
     id: UUID
-    amount: float
-    currency: str
+    amount: Money
     status: PaymentStatus
-    user_id: UUID
     order_id: UUID
     created_at: datetime
     captured_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
 
     def can_be_captured(self) -> bool:
         return self.status == PaymentStatus.WAITING_FOR_CAPTURE
 
-    def can_be_cancelled(self) -> bool:
-        return self.status in (PaymentStatus.PENDING, PaymentStatus.WAITING_FOR_CAPTURE)
+    def is_active(self) -> bool:
+        valid_statuses = (PaymentStatus.PENDING, PaymentStatus.WAITING_FOR_CAPTURE)
+        return self.status in valid_statuses and self.expires_at > datetime.utcnow()
 
     def mark_as_succeeded(self, capture_date: datetime) -> None:
         if self.status != PaymentStatus.WAITING_FOR_CAPTURE:
@@ -35,7 +35,7 @@ class Payment(AbstractModel):
         self.captured_at = capture_date
 
     def mark_as_cancelled(self) -> None:
-        if not self.can_be_cancelled():
+        if not self.is_active():
             raise InvalidPaymentStatusError(
                 f"Payment cannot be cancelled in current state: {self.status}"
             )
