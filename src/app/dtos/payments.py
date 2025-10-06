@@ -9,6 +9,7 @@ from src.domain.payment.entities.payment import Payment
 @dataclass
 class PaymentCreationData:
     payment: Payment
+    gateway_payment_id: str
     confirmation_url: Optional[str] = None
     payment_method: Optional[str] = None
     refundable: bool = False
@@ -25,3 +26,17 @@ class CreatePaymentResult:
     confirmation_url: str
 
 
+@dataclass
+class PaymentWithTechnicalData:
+    payment: Payment
+    gateway_payment_id: Optional[str] = None
+    confirmation_url: Optional[str] = None
+    payment_method: Optional[str] = None
+    idempotency_key: Optional[str] = None
+
+
+@dataclass
+class CancelPaymentResult:
+    payment: Payment
+    cancelled_at: datetime
+    message: str = "Payment cancelled successfully"

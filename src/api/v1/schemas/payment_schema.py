@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.app.dtos.payments import CreatePaymentResult
+from src.app.dtos.payments import CreatePaymentResult, CancelPaymentResult
 
 
 class MoneySchema(BaseModel):
@@ -42,4 +42,20 @@ class PaymentCreateResponse(BaseModel):
             created_at=result.payment.created_at,
             expires_at=result.payment.expires_at,
             confirmation_url=result.confirmation_url,
+        )
+
+
+class PaymentCancelResponse(BaseModel):
+    payment_id: UUID
+    status: str
+    cancelled_at: datetime
+    message: str
+
+    @classmethod
+    def from_result(cls, result: CancelPaymentResult):
+        return cls(
+            payment_id=result.payment.id,
+            status=result.payment.status.value,
+            cancelled_at=result.cancelled_at,
+            message=result.message
         )

@@ -74,6 +74,13 @@ class PaymentORM(Base, IDMixin, TimestampMixin):
         unique=True,
         nullable=True
     )
+    gateway_payment_id: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=True,
+        unique=True,
+        index=True,
+        comment="ID платежа в платежном шлюзе"
+    )
 
     captured_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     cancelled_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)

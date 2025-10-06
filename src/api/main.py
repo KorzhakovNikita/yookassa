@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from yookassa import Configuration
 
 from src.config import settings
 from src.api.v1.routers.payments import router as payment_router
@@ -16,6 +17,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+async def startup_event():
+    Configuration.configure(settings.SHOP_ID, settings.SHOP_SECRET_KEY)
 
 
 if __name__ == "__main__":

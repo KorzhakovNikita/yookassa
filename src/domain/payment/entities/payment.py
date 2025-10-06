@@ -18,13 +18,22 @@ class Payment(Entity):
     created_at: datetime
     captured_at: Optional[datetime] = None
     expires_at: Optional[datetime] = None
+    cancelled_at: Optional[datetime] = None
 
     def can_be_captured(self) -> bool:
         return self.status == PaymentStatus.WAITING_FOR_CAPTURE
 
+    def can_be_cancelled(self) -> bool:
+        return self.status == PaymentStatus.WAITING_FOR_CAPTURE
+
     def is_active(self) -> bool:
         valid_statuses = (PaymentStatus.PENDING, PaymentStatus.WAITING_FOR_CAPTURE)
-        return self.status in valid_statuses and self.expires_at > datetime.utcnow()
+        return self.status in valid_statuses and not self.is_expired()
+
+    def is_expired(self) -> bool:
+        if not self.expires_at:
+            return False
+        return datetime.utcnow() > self.expires_at
 
     def mark_as_succeeded(self, capture_date: datetime) -> None:
         if self.status != PaymentStatus.WAITING_FOR_CAPTURE:
@@ -35,8 +44,6 @@ class Payment(Entity):
         self.captured_at = capture_date
 
     def mark_as_cancelled(self) -> None:
-        if not self.is_active():
-            raise InvalidPaymentStatusError(
-                f"Payment cannot be cancelled in current state: {self.status}"
-            )
         self.status = PaymentStatus.CANCELED
+        self.cancelled_at = datetime.utcnow()
+

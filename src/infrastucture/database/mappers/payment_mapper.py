@@ -1,6 +1,6 @@
 from typing import Optional
 
-from src.app.dtos.payments import PaymentCreationData, CreatePaymentResult
+from src.app.dtos.payments import PaymentCreationData, PaymentWithTechnicalData
 from src.domain.payment.entities.payment import Payment
 from src.domain.payment.value_objects.payment_status import PaymentStatus
 from src.domain.shared.value_objects.money import Money
@@ -21,7 +21,8 @@ class PaymentDataMapper:
             order_id=orm_payment.order_id,
             created_at=orm_payment.created_at,
             captured_at=orm_payment.captured_at,
-            expires_at=orm_payment.expires_at
+            expires_at=orm_payment.expires_at,
+            cancelled_at=orm_payment.cancelled_at
         )
 
     @staticmethod
@@ -46,6 +47,7 @@ class PaymentDataMapper:
         orm_payment.expires_at = payment_data.expires_at
 
         # Technical fields
+        orm_payment.gateway_payment_id = payment_data.gateway_payment_id
         orm_payment.confirmation_url = payment_data.confirmation_url
         orm_payment.payment_method = payment_data.payment_method
         orm_payment.description = payment_data.description
@@ -59,10 +61,13 @@ class PaymentDataMapper:
     @staticmethod
     def to_domain_with_technical_data(
         payment_orm: PaymentORM
-    ) -> CreatePaymentResult:
+    ) -> PaymentWithTechnicalData:
         domain_payment = PaymentDataMapper.to_domain(payment_orm)
 
-        return CreatePaymentResult(
+        return PaymentWithTechnicalData(
             payment=domain_payment,
+            gateway_payment_id=payment_orm.gateway_payment_id,
             confirmation_url=payment_orm.confirmation_url,
+            payment_method=payment_orm.payment_method,
+            idempotency_key=payment_orm.idempotency_key
         )

@@ -12,3 +12,7 @@ class InvalidPaymentStatusError(PaymentError):
 class PaymentNotFound(PaymentError):
     pass
 
+
+class PaymentGatewayError(PaymentError):
+    pass
+

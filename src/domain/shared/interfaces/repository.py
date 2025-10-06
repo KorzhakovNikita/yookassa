@@ -15,6 +15,9 @@ class Repository(ABC, Generic[T]):
     async def save(self, data) -> None: ...
 
     @abstractmethod
+    async def update(self, entity: T) -> None: ...
+
+    @abstractmethod
     async def delete(self, entity: T) -> None: ...
 
     @abstractmethod
