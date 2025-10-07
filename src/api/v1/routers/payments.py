@@ -4,12 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from starlette import status
 
 from src.api.v1.dependencies.payment import get_create_payment_use_case, get_cancel_payment_use_case, \
-    get_capture_payment_use_case
+    get_capture_payment_use_case, get_payment_use_case
 from src.api.v1.schemas.payment_schema import PaymentCreateRequest, PaymentCreateResponse, PaymentCancelResponse, \
-    PaymentCaptureResponse
+    PaymentCaptureResponse, PaymentResponse
 from src.app.use_cases.payments.cancel_payment import CancelPaymentUseCase
 from src.app.use_cases.payments.capture_payment import CapturePaymentUseCase
 from src.app.use_cases.payments.create_payment import CreatePaymentUseCase
+from src.app.use_cases.payments.get_payment import GetPaymentUseCase
+from src.domain.payment.exceptions import PaymentNotFound
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -64,3 +66,26 @@ async def capture_payment(
         payment_id=payment_id,
     )
     return PaymentCaptureResponse.from_result(result)
+
+
+@router.get(
+    "/{payment_id}",
+    response_model=PaymentResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get payment by id"
+)
+async def get_payment(
+    payment_id: UUID,
+    use_case: GetPaymentUseCase = Depends(get_payment_use_case)
+):
+    try:
+        result = await use_case.execute(
+            payment_id=payment_id,
+        )
+        return PaymentResponse.from_result(result)
+    except PaymentNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+
