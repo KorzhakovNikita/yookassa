@@ -40,3 +40,10 @@ class CancelPaymentResult:
     payment: Payment
     cancelled_at: datetime
     message: str = "Payment cancelled successfully"
+
+
+@dataclass
+class CapturePaymentResult:
+    payment: Payment
+    captured_at: datetime
+    message: str = "Payment captured successfully"

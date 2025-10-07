@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from src.domain.payment.exceptions import InvalidPaymentStatusError
+from src.domain.payment.exceptions import PaymentStatusError
 from src.domain.shared.entities.base import Entity
 from src.domain.payment.value_objects.payment_status import PaymentStatus
 from src.domain.shared.value_objects.money import Money
@@ -21,9 +21,17 @@ class Payment(Entity):
     cancelled_at: Optional[datetime] = None
 
     def can_be_captured(self) -> bool:
+
+        if self.is_expired():
+            return False
+
         return self.status == PaymentStatus.WAITING_FOR_CAPTURE
 
     def can_be_cancelled(self) -> bool:
+
+        if self.is_expired():
+            return False
+
         return self.status == PaymentStatus.WAITING_FOR_CAPTURE
 
     def is_active(self) -> bool:
@@ -37,7 +45,7 @@ class Payment(Entity):
 
     def mark_as_succeeded(self, capture_date: datetime) -> None:
         if self.status != PaymentStatus.WAITING_FOR_CAPTURE:
-            raise InvalidPaymentStatusError(
+            raise PaymentStatusError(
                 f"Only waiting_for_capture payments can be succeeded. Current status: {self.status}"
             )
         self.status = PaymentStatus.SUCCEEDED
@@ -46,4 +54,17 @@ class Payment(Entity):
     def mark_as_cancelled(self) -> None:
         self.status = PaymentStatus.CANCELED
         self.cancelled_at = datetime.utcnow()
+
+    def mark_as_captured(self) -> None:
+        self.status = PaymentStatus.SUCCEEDED
+        self.captured_at = datetime.utcnow()
+
+    def mark_as_waiting_for_capture(self) -> None:
+        if self.status != PaymentStatus.PENDING:
+            raise PaymentStatusError(
+                f"Can only mark PENDING payments as waiting_for_capture. "
+                f"Current status: {self.status}"
+            )
+
+        self.status = PaymentStatus.WAITING_FOR_CAPTURE
 

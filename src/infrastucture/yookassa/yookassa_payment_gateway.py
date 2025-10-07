@@ -40,7 +40,8 @@ class YookassaPaymentGateway(IPaymentGateway):
         return payment
 
     async def capture_payment(self, payment_id: str) -> bool:
-        pass
+        capture_response = Payment.capture(payment_id)
+        return capture_response
 
     async def cancel_payment(self, payment_id: str) -> bool:
         # todo: нужен ли тут ключ idempotency_key

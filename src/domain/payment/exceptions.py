@@ -5,7 +5,7 @@ class PaymentError(DomainException):
     pass
 
 
-class InvalidPaymentStatusError(PaymentError):
+class PaymentStatusError(PaymentError):
     pass
 
 

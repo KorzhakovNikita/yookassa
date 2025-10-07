@@ -4,6 +4,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.use_cases.payments.cancel_payment import CancelPaymentUseCase
+from src.app.use_cases.payments.capture_payment import CapturePaymentUseCase
 from src.app.use_cases.payments.create_payment import CreatePaymentUseCase
 from src.domain.payment.inrerfaces.ipayment_gateway import IPaymentGateway
 from src.domain.payment.inrerfaces.ipayment_repository import IPaymentRepository
@@ -34,3 +35,11 @@ async def get_cancel_payment_use_case(
     payment_gateway: Annotated[IPaymentGateway, Depends(get_payment_gateway)]
 ) -> CancelPaymentUseCase:
     return CancelPaymentUseCase(payment_repo, payment_gateway)
+
+
+async def get_capture_payment_use_case(
+    payment_repo: Annotated[IPaymentRepository, Depends(get_payment_repository)],
+    payment_gateway: Annotated[IPaymentGateway, Depends(get_payment_gateway)]
+) -> CapturePaymentUseCase:
+    return CapturePaymentUseCase(payment_repo, payment_gateway)
+
