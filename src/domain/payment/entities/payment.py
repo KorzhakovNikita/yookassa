@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from src.domain.payment.exceptions import PaymentStatusError
+from src.domain.payment.exceptions import PaymentStateError
 from src.domain.shared.entities.base import Entity
 from src.domain.payment.value_objects.payment_status import PaymentStatus
 from src.domain.shared.value_objects.money import Money
@@ -45,7 +45,7 @@ class Payment(Entity):
 
     def mark_as_succeeded(self, capture_date: datetime) -> None:
         if self.status != PaymentStatus.WAITING_FOR_CAPTURE:
-            raise PaymentStatusError(
+            raise PaymentStateError(
                 f"Only waiting_for_capture payments can be succeeded. Current status: {self.status}"
             )
         self.status = PaymentStatus.SUCCEEDED
@@ -61,7 +61,7 @@ class Payment(Entity):
 
     def mark_as_waiting_for_capture(self) -> None:
         if self.status != PaymentStatus.PENDING:
-            raise PaymentStatusError(
+            raise PaymentStateError(
                 f"Can only mark PENDING payments as waiting_for_capture. "
                 f"Current status: {self.status}"
             )

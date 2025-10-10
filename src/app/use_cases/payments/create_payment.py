@@ -1,16 +1,22 @@
+import logging
 import uuid
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from uuid import UUID, uuid4
 
+from yookassa.domain.exceptions import BadRequestError
 from yookassa.domain.response import PaymentResponse
 
 from src.app.dtos.payments import PaymentCreationData, CreatePaymentResult
 from src.domain.payment.entities.payment import Payment
+from src.domain.payment.exceptions import PaymentGatewayError
 from src.domain.payment.inrerfaces.ipayment_gateway import IPaymentGateway
 from src.domain.payment.inrerfaces.ipayment_repository import IPaymentRepository
 from src.domain.payment.value_objects.payment_status import PaymentStatus
 from src.domain.shared.value_objects.money import Money
+
+
+logger = logging.getLogger(__name__)
 
 
 class CreatePaymentUseCase:
@@ -36,12 +42,21 @@ class CreatePaymentUseCase:
                 confirmation_url=exiting_payment.confirmation_url,
             )
 
-        yookassa_response: PaymentResponse = await self.payment_gateway.create_payment(
-            amount=amount,
-            description=description,
-            metadata=metadata,
-            return_url=return_url
-        )
+        try:
+            logger.info("Create payment request in gateway: order-id = %s", order_id)
+            yookassa_response: PaymentResponse = await self.payment_gateway.create_payment(
+                amount=amount,
+                description=description,
+                metadata=metadata,
+                return_url=return_url
+            )
+            logger.info("Payment created in gateway successfully")
+
+        except BadRequestError as e:
+            logger.error(f"Failed to create payment in gateway: {e}")
+            raise PaymentGatewayError(
+                f"Failed to create payment in gateway: {str(e)}"
+            )
 
         created_at = datetime.strptime(
             yookassa_response.created_at,

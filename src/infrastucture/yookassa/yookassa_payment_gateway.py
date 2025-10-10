@@ -21,7 +21,6 @@ class YookassaPaymentGateway(IPaymentGateway):
             metadata: Optional[Dict[str, Any]] = None,
             return_url: str = None
     ) -> str:
-        Configuration.configure(self.shop_id, self.secret_key)
         payment = Payment.create(
             {
                 "amount": {
