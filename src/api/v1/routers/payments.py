@@ -4,13 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from starlette import status
 
 from src.api.v1.dependencies.payment import get_create_payment_use_case, get_cancel_payment_use_case, \
-    get_capture_payment_use_case, get_payment_use_case
+    get_capture_payment_use_case, get_payment_use_case, get_payment_list_use_case
 from src.api.v1.schemas.payment_schema import PaymentCreateRequest, PaymentCreateResponse, PaymentCancelResponse, \
     PaymentCaptureResponse, PaymentResponse
 from src.app.use_cases.payments.cancel_payment import CancelPaymentUseCase
 from src.app.use_cases.payments.capture_payment import CapturePaymentUseCase
 from src.app.use_cases.payments.create_payment import CreatePaymentUseCase
 from src.app.use_cases.payments.get_payment import GetPaymentUseCase
+from src.app.use_cases.payments.get_payment_list import GetPaymentListUseCase
 from src.domain.payment.exceptions import PaymentNotFound
 
 router = APIRouter(prefix="/payments", tags=["payments"])
@@ -89,3 +90,20 @@ async def get_payment(
             detail=str(e)
         )
 
+
+@router.get(
+    "/",
+    response_model=list[PaymentResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Get payments list"
+)
+async def get_payments(
+    skip: int = 0,
+    limit: int = 100,
+    use_case: GetPaymentListUseCase = Depends(get_payment_list_use_case)
+):
+    results = await use_case.execute(
+        skip=skip,
+        limit=limit,
+    )
+    return [PaymentResponse.from_result(result) for result in results]

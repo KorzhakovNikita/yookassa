@@ -80,12 +80,12 @@ class PaymentRepository(IPaymentRepository):
         if payment_orm:
             await self.session.delete(payment_orm)
 
-    async def list_all(self, skip: int = 0, limit: int = 100) -> List[Payment]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> Optional[List[PaymentWithTechnicalData]]:
         stmt = select(PaymentORM).offset(skip).limit(limit)
         result = await self.session.execute(stmt)
         payments_orm = result.scalars().all()
 
-        return [self.mapper.to_domain(payment) for payment in payments_orm]
+        return [self.mapper.to_domain_with_technical_data(payment) for payment in payments_orm]
 
     async def _get_by_id(self, payment_id: UUID) -> PaymentORM:
         stmt = select(PaymentORM).where(PaymentORM.id == payment_id)

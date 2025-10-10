@@ -7,6 +7,7 @@ from src.app.use_cases.payments.cancel_payment import CancelPaymentUseCase
 from src.app.use_cases.payments.capture_payment import CapturePaymentUseCase
 from src.app.use_cases.payments.create_payment import CreatePaymentUseCase
 from src.app.use_cases.payments.get_payment import GetPaymentUseCase
+from src.app.use_cases.payments.get_payment_list import GetPaymentListUseCase
 from src.domain.payment.inrerfaces.ipayment_gateway import IPaymentGateway
 from src.domain.payment.inrerfaces.ipayment_repository import IPaymentRepository
 from src.infrastucture.database.connection import get_session
@@ -49,5 +50,11 @@ async def get_payment_use_case(
     payment_repo: Annotated[IPaymentRepository, Depends(get_payment_repository)],
 ) -> GetPaymentUseCase:
     return GetPaymentUseCase(payment_repo)
+
+
+async def get_payment_list_use_case(
+    payment_repo: Annotated[IPaymentRepository, Depends(get_payment_repository)],
+) -> GetPaymentListUseCase:
+    return GetPaymentListUseCase(payment_repo)
 
 
