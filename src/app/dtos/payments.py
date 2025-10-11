@@ -17,7 +17,6 @@ class PaymentCreationData:
     metadata: Optional[Dict[str, Any]] = None
     idempotency_key: Optional[UUID] = None
     cancelled_at: Optional[datetime] = None
-    expires_at: Optional[datetime] = None
 
 
 @dataclass

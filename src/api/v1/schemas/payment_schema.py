@@ -56,7 +56,7 @@ class PaymentCancelResponse(BaseModel):
     def from_result(cls, result: CancelPaymentResult):
         return cls(
             payment_id=result.payment.id,
-            status=result.payment.status.value,
+            status=result.payment.status,
             cancelled_at=result.cancelled_at,
             message=result.message
         )
@@ -72,7 +72,7 @@ class PaymentCaptureResponse(BaseModel):
     def from_result(cls, result: CapturePaymentResult):
         return cls(
             payment_id=result.payment.id,
-            status=result.payment.status.value,
+            status=result.payment.status,
             captured_at=result.captured_at,
             message=result.message
         )
@@ -101,10 +101,15 @@ class PaymentResponse(BaseModel):
                 currency=result.payment.amount.currency
             ),
             payment_method=result.payment_method,
-            status=result.payment.status.value,
+            status=result.payment.status,
             confirmation_url=result.confirmation_url,
             created_at=result.payment.created_at,
             expires_at=result.payment.expires_at,
             captured_at=result.payment.captured_at,
             cancelled_at=result.payment.cancelled_at,
         )
+
+
+#todo: move to refund schema. Partial_refund
+class RefundCreateRequest(BaseModel):
+    reason: Optional[str] = Field(None, max_length=512)

@@ -45,6 +45,7 @@ class CapturePaymentUseCase:
             )
 
         payment.mark_as_captured()
+        # refundable=true
         await self.repo.update(payment)
 
         return CapturePaymentResult(

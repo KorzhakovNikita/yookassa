@@ -77,10 +77,10 @@ class CreatePaymentUseCase:
             payment=payment,
             gateway_payment_id=yookassa_response.id,
             confirmation_url=yookassa_response.confirmation.confirmation_url,
+            #todo: при оплате взять payment_method
             payment_method=yookassa_response.payment_method,
             description=description,
             metadata=metadata,
-            expires_at=expires_at,
             idempotency_key=uuid.uuid4()
         )
 

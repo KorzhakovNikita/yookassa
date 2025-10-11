@@ -1,6 +1,7 @@
 from typing import Optional, Dict, Any
 
-from yookassa import Payment, Configuration
+from yookassa import Payment, Configuration, Refund
+from yookassa.domain.response import PaymentResponse
 
 from src.domain.payment.inrerfaces.ipayment_gateway import IPaymentGateway
 from src.config import settings
@@ -46,6 +47,16 @@ class YookassaPaymentGateway(IPaymentGateway):
         # todo: нужен ли тут ключ idempotency_key
         cancel_response = Payment.cancel(payment_id)
         return cancel_response
+
+    async def refund_payment(self, payment_id: str, value: float, currency: str) -> PaymentResponse:
+        refund_response = Refund.create({
+            "amount": {
+                "value": value,
+                "currency": currency
+            },
+            "payment_id": payment_id
+        })
+        return refund_response
 
     async def get_payment(self, payment_id: str):
         pass

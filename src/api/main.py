@@ -5,7 +5,7 @@ from yookassa import Configuration
 
 from src.api.exception_handler import payment_not_found_handler, payment_state_error_handler, \
     payment_gateway_error_handler, general_exception_handler
-from src.config import settings
+from src.config import settings, configure_logging
 from src.api.v1.routers.payments import router as payment_router
 from src.domain.payment.exceptions import PaymentNotFound, PaymentStateError, PaymentGatewayError
 
@@ -30,6 +30,7 @@ app.add_exception_handler(Exception, general_exception_handler)
 
 @app.on_event("startup")
 async def startup_event():
+    configure_logging()
     Configuration.configure(settings.SHOP_ID, settings.SHOP_SECRET_KEY)
 
 
