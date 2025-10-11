@@ -1,3 +1,5 @@
+import logging
+
 from pydantic_settings import BaseSettings
 
 
@@ -20,3 +22,11 @@ class Settings(BaseSettings):
 
 
 settings = Settings(_env_file=".env", _env_file_encoding="utf-8")
+
+
+def configure_logging(level: str = logging.INFO):
+    logging.basicConfig(
+        level=level,
+        datefmt="%Y-%m-%d %H:%M:%S:",
+        format="[%(asctime)s.%(msecs)03d] %(module)s:%(lineno)d %(levelname)s - %(message)s"
+    )

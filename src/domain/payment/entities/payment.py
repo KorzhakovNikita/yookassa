@@ -34,6 +34,10 @@ class Payment(Entity):
 
         return self.status == PaymentStatus.WAITING_FOR_CAPTURE
 
+    def can_be_refund(self) -> bool:
+        #todo: implemented expire for other bank
+        return self.status == PaymentStatus.SUCCEEDED
+
     def is_active(self) -> bool:
         valid_statuses = (PaymentStatus.PENDING, PaymentStatus.WAITING_FOR_CAPTURE)
         return self.status in valid_statuses and not self.is_expired()
@@ -52,12 +56,15 @@ class Payment(Entity):
         self.captured_at = capture_date
 
     def mark_as_cancelled(self) -> None:
-        self.status = PaymentStatus.CANCELED
+        self.status = PaymentStatus.CANCELED.value
         self.cancelled_at = datetime.utcnow()
 
     def mark_as_captured(self) -> None:
-        self.status = PaymentStatus.SUCCEEDED
+        self.status = PaymentStatus.SUCCEEDED.value
         self.captured_at = datetime.utcnow()
+
+    def mark_as_refunded(self) -> None:
+        self.status = PaymentStatus.REFUNDED.value
 
     def mark_as_waiting_for_capture(self) -> None:
         if self.status != PaymentStatus.PENDING:

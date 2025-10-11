@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from src.domain.order.value_objects.order_status import OrderStatus
 from src.domain.payment.value_objects.payment_status import PaymentStatus
+from src.domain.refund.value_objects.refund_status import RefundStatus
 from src.infrastucture.database.base import Base
 from src.infrastucture.database.mixins import IDMixin, TimestampMixin
 
@@ -85,3 +86,27 @@ class PaymentORM(Base, IDMixin, TimestampMixin):
     captured_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     cancelled_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+
+class RefundORM(Base, IDMixin, TimestampMixin):
+    __tablename__ = "refunds"
+
+    payment_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("payments.id"),
+        nullable=False,
+        index=True
+    )
+    amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    currency: Mapped[str] = mapped_column(String(3), nullable=False)
+    status: Mapped[RefundStatus] = mapped_column(String(30), nullable=False, default=RefundStatus.PENDING.value)
+    reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    gateway_refund_id: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=True,
+        unique=True,
+        index=True,
+        comment="ID возврата в платежном шлюзе"
+    )
+    refunded_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)

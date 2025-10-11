@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import select
@@ -6,33 +6,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.dtos.payments import PaymentCreationData, CreatePaymentResult, PaymentWithTechnicalData
 from src.domain.payment.entities.payment import Payment
-from src.domain.payment.exceptions import PaymentNotFound
 from src.domain.payment.inrerfaces.ipayment_repository import IPaymentRepository
-from src.domain.shared.interfaces.repository import T
 from src.infrastucture.database.mappers.payment_mapper import PaymentDataMapper
 from src.infrastucture.database.models import PaymentORM
+from src.infrastucture.database.repositories.base_repository import BaseRepository
 
 
-class PaymentRepository(IPaymentRepository):
+class PaymentRepository(BaseRepository[Payment, PaymentORM], IPaymentRepository):
 
     def __init__(self, session: AsyncSession):
-        self.session = session
-        self.mapper = PaymentDataMapper()
+        super().__init__(
+            session=session,
+            orm_model=PaymentORM,
+            mapper=PaymentDataMapper()
+        )
 
-    async def get_by_id(self, payment_id: UUID) -> Optional[Payment]:
-        payment = await self._get_by_id(payment_id)
-
-        if payment is None:
-            raise PaymentNotFound(f"Payment with id={payment_id} not found.")
-
-        return PaymentDataMapper.to_domain(payment)
-
-    async def get_with_technical_data(self, payment_uuid: UUID) -> Optional[PaymentWithTechnicalData]:
-        payment = await self._get_by_id(payment_uuid)
-
-        if not payment:
-            return None
-
+    async def get_with_technical_data(self, payment_id: UUID) -> Optional[PaymentWithTechnicalData]:
+        payment = await self._get_orm_by_id(payment_id)
         return self.mapper.to_domain_with_technical_data(payment)
 
     async def get_by_order_id(self, order_id: UUID) -> Optional[CreatePaymentResult]:
@@ -52,7 +42,7 @@ class PaymentRepository(IPaymentRepository):
         payment_id = data.payment.id
 
         if payment_id:
-            existing_orm = await self._get_by_id(payment_id)
+            existing_orm = await self._get_orm_by_id(payment_id)
 
         orm_payment = self.mapper.to_orm(data, existing_orm)
 
@@ -60,34 +50,3 @@ class PaymentRepository(IPaymentRepository):
             self.session.add(orm_payment)
 
         await self.session.flush()
-
-    async def update(self, payment: Payment) -> None:
-        orm_payment = await self._get_by_id(payment.id)
-
-        # todo: доработать
-        orm_payment.status = payment.status.value
-        orm_payment.amount = payment.amount.value
-        orm_payment.currency = payment.amount.currency
-        orm_payment.captured_at = payment.captured_at
-        orm_payment.cancelled_at = payment.cancelled_at
-        orm_payment.expires_at = payment.expires_at
-
-        await self.session.flush()
-
-    async def delete(self, payment: Payment) -> None:
-        payment_orm = await self.get_by_id(payment.id)
-
-        if payment_orm:
-            await self.session.delete(payment_orm)
-
-    async def get_all(self, skip: int = 0, limit: int = 100) -> Optional[List[PaymentWithTechnicalData]]:
-        stmt = select(PaymentORM).offset(skip).limit(limit)
-        result = await self.session.execute(stmt)
-        payments_orm = result.scalars().all()
-
-        return [self.mapper.to_domain_with_technical_data(payment) for payment in payments_orm]
-
-    async def _get_by_id(self, payment_id: UUID) -> PaymentORM:
-        stmt = select(PaymentORM).where(PaymentORM.id == payment_id)
-        result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()

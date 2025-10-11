@@ -44,7 +44,7 @@ class PaymentDataMapper:
         orm_payment.order_id = payment.order_id
         orm_payment.created_at = payment.created_at
         orm_payment.captured_at = payment.captured_at
-        orm_payment.expires_at = payment_data.expires_at
+        orm_payment.expires_at = payment.expires_at
 
         # Technical fields
         orm_payment.gateway_payment_id = payment_data.gateway_payment_id
@@ -71,3 +71,13 @@ class PaymentDataMapper:
             payment_method=payment_orm.payment_method,
             idempotency_key=payment_orm.idempotency_key
         )
+
+    @staticmethod
+    def update_orm_from_domain(payment_orm: PaymentORM, payment: Payment):
+        payment_orm.amount = payment.amount.value
+        payment_orm.currency = payment.amount.currency
+        payment_orm.status = payment.status
+        payment_orm.captured_at = payment.captured_at
+        payment_orm.cancelled_at = payment.cancelled_at
+        payment_orm.expires_at = payment.expires_at
+

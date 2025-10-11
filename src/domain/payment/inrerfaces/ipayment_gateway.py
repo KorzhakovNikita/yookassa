@@ -24,6 +24,9 @@ class IPaymentGateway(ABC):
     async def cancel_payment(self, payment_id: str) -> PaymentResponse: ...
 
     @abstractmethod
+    async def refund_payment(self, payment_id: str, value: float, currency: str) -> PaymentResponse: ...
+
+    @abstractmethod
     async def get_payment(self, payment_id: str): ...
 
     @abstractmethod
