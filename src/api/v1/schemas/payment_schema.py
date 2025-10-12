@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from src.app.dtos.payments import CreatePaymentResult, CancelPaymentResult, CapturePaymentResult, \
     PaymentWithTechnicalData
+from src.app.dtos.refunds import RefundPaymentResult
 
 
 class MoneySchema(BaseModel):
@@ -110,6 +111,29 @@ class PaymentResponse(BaseModel):
         )
 
 
-#todo: move to refund schema. Partial_refund
+#todo: move to refund schema. Partial_refund implementation
 class RefundCreateRequest(BaseModel):
     reason: Optional[str] = Field(None, max_length=512)
+
+
+class RefundPaymentResponse(BaseModel):
+    payment_id: UUID
+    refund_id: UUID
+    status: str
+    refunded_amount: MoneySchema
+    refunded_at: datetime
+    message: str
+
+    @classmethod
+    def from_result(cls, result: RefundPaymentResult):
+        return cls(
+            payment_id=result.payment.id,
+            refund_id=result.refund.id,
+            status=result.payment.status,
+            refunded_amount=MoneySchema(
+                value=float(result.refunded_amount.value),
+                currency=result.refunded_amount.currency
+            ),
+            refunded_at=result.refund.refunded_at,
+            message=result.message
+        )

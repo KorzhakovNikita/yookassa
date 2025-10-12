@@ -56,13 +56,13 @@ class RefundPaymentUseCase:
 
         try:
             logger.info(f"Refund payment in gateway: {gateway_payment_id}")
-            #todo: cancellation_details handle with reason
             yookassa_response = await self.gateway.refund_payment(
                 gateway_payment_id, payment.amount.value, payment.amount.currency
             )
+            #todo: cancellation_details handle with reason
             #todo: if not cancellation_details else mark_as_failed
-
             #todo: only one request to refund - handle this situation
+
             logger.info(f"Payment captured in gateway successfully")
         except BadRequestError as e:
             logger.error(f"Failed to refund payment in gateway: {e}")
@@ -83,6 +83,7 @@ class RefundPaymentUseCase:
         return RefundPaymentResult(
             payment=payment,
             refund=refund,
+            refunded_amount=refund.amount
         )
 
 

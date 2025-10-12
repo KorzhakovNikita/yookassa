@@ -6,7 +6,7 @@ from starlette import status
 from src.api.v1.dependencies.payment import get_create_payment_use_case, get_cancel_payment_use_case, \
     get_capture_payment_use_case, get_payment_use_case, get_payment_list_use_case, get_refund_payment_use_case
 from src.api.v1.schemas.payment_schema import PaymentCreateRequest, PaymentCreateResponse, PaymentCancelResponse, \
-    PaymentCaptureResponse, PaymentResponse, RefundCreateRequest
+    PaymentCaptureResponse, PaymentResponse, RefundCreateRequest, RefundPaymentResponse
 from src.app.use_cases.payments.cancel_payment import CancelPaymentUseCase
 from src.app.use_cases.payments.capture_payment import CapturePaymentUseCase
 from src.app.use_cases.payments.create_payment import CreatePaymentUseCase
@@ -106,8 +106,8 @@ async def capture_payment(
 @router.post(
     "/{payment_id}/refund",
     status_code=status.HTTP_200_OK,
-    summary="Refund payment"
-    #todo: add response model
+    summary="Refund payment",
+    response_model=RefundPaymentResponse
 )
 async def refund_payment(
     payment_id: UUID,
@@ -118,4 +118,4 @@ async def refund_payment(
         payment_id=payment_id,
         reason=request_data.reason
     )
-    return result
+    return RefundPaymentResponse.from_result(result)
