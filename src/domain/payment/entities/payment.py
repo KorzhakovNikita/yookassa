@@ -3,7 +3,6 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from src.domain.payment.exceptions import PaymentStateError
 from src.domain.shared.entities.base import Entity
 from src.domain.payment.value_objects.payment_status import PaymentStatus
 from src.domain.shared.value_objects.money import Money
@@ -16,12 +15,19 @@ class Payment(Entity):
     status: PaymentStatus
     order_id: UUID
     created_at: datetime
+    refundable: bool = False
     captured_at: Optional[datetime] = None
     expires_at: Optional[datetime] = None
     cancelled_at: Optional[datetime] = None
 
     def can_be_captured(self) -> bool:
 
+        if self.is_expired():
+            return False
+
+        return self.status == PaymentStatus.PENDING
+
+    def can_be_succeeded(self) -> bool:
         if self.is_expired():
             return False
 
@@ -48,10 +54,6 @@ class Payment(Entity):
         return datetime.utcnow() > self.expires_at
 
     def mark_as_succeeded(self, capture_date: datetime) -> None:
-        if self.status != PaymentStatus.WAITING_FOR_CAPTURE:
-            raise PaymentStateError(
-                f"Only waiting_for_capture payments can be succeeded. Current status: {self.status}"
-            )
         self.status = PaymentStatus.SUCCEEDED
         self.captured_at = capture_date
 
@@ -62,16 +64,12 @@ class Payment(Entity):
     def mark_as_captured(self) -> None:
         self.status = PaymentStatus.SUCCEEDED.value
         self.captured_at = datetime.utcnow()
+        self.refundable = True
 
     def mark_as_refunded(self) -> None:
         self.status = PaymentStatus.REFUNDED.value
+        self.refundable = False
 
     def mark_as_waiting_for_capture(self) -> None:
-        if self.status != PaymentStatus.PENDING:
-            raise PaymentStateError(
-                f"Can only mark PENDING payments as waiting_for_capture. "
-                f"Current status: {self.status}"
-            )
-
-        self.status = PaymentStatus.WAITING_FOR_CAPTURE
+        self.status = PaymentStatus.WAITING_FOR_CAPTURE.value
 

@@ -7,11 +7,13 @@ from src.api.exception_handler import payment_not_found_handler, payment_state_e
     payment_gateway_error_handler, general_exception_handler
 from src.config import settings, configure_logging
 from src.api.v1.routers.payments import router as payment_router
+from src.api.v1.routers.webhooks import router as webhook_router
 from src.domain.payment.exceptions import PaymentNotFound, PaymentStateError, PaymentGatewayError
 
 app = FastAPI(title="YookassaService")
 
 app.include_router(payment_router)
+app.include_router(webhook_router)
 # Middleware
 app.add_middleware(
     CORSMiddleware,

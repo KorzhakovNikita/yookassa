@@ -1,3 +1,6 @@
+from typing import Optional
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.dtos.refunds import RefundCreationData
@@ -32,3 +35,14 @@ class RefundRepository(BaseRepository[RefundORM, Refund], IRefundRepository):
 
         await self.session.flush()
 
+    async def get_by_gateway_refund_id(self, gateway_refund_id: str) -> Optional[Refund]:
+        query = (
+            select(RefundORM)
+            .where(RefundORM.gateway_refund_id == gateway_refund_id)
+            .order_by(RefundORM.created_at.desc())
+            .limit(1)
+        )
+        result = await self.session.execute(query)
+        refund_orm = result.scalars().first()
+
+        return self.mapper.to_domain(refund_orm) if refund_orm else None

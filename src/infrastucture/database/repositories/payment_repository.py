@@ -4,8 +4,10 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.dtos.payments import PaymentCreationData, CreatePaymentResult, PaymentWithTechnicalData
+from src.app.dtos.payments import PaymentCreationData, CreatePaymentResult, PaymentWithTechnicalData, \
+    PaymentTechnicalDataUpdate
 from src.domain.payment.entities.payment import Payment
+from src.domain.payment.exceptions import PaymentNotFound
 from src.domain.payment.inrerfaces.ipayment_repository import IPaymentRepository
 from src.infrastucture.database.mappers.payment_mapper import PaymentDataMapper
 from src.infrastucture.database.models import PaymentORM
@@ -48,5 +50,27 @@ class PaymentRepository(BaseRepository[Payment, PaymentORM], IPaymentRepository)
 
         if existing_orm is None:
             self.session.add(orm_payment)
+
+        await self.session.flush()
+
+    async def get_by_gateway_payment_id(self, gateway_payment_id: str) -> Optional[Payment]:
+        query = (
+            select(PaymentORM)
+            .where(PaymentORM.gateway_payment_id == gateway_payment_id)
+            .order_by(PaymentORM.created_at.desc())
+            .limit(1)
+        )
+        result = await self.session.execute(query)
+        payment_orm = result.scalars().first()
+
+        return self.mapper.to_domain(payment_orm) if payment_orm else None
+
+    async def update_technical_fields(self, payment_id: UUID, technical_data: PaymentTechnicalDataUpdate) -> None:
+        orm_payment = await self._get_orm_by_id(payment_id)
+
+        if not orm_payment:
+            raise PaymentNotFound(f"Payment {payment_id} not found")
+
+        technical_data.apply_to_orm(orm_payment)
 
         await self.session.flush()

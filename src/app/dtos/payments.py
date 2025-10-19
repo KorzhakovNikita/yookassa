@@ -1,9 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from datetime import datetime
 from typing import Optional, Dict, Any
 from uuid import UUID
 
 from src.domain.payment.entities.payment import Payment
+from src.infrastucture.database.models import PaymentORM
 
 
 @dataclass
@@ -23,6 +24,18 @@ class PaymentCreationData:
 class CreatePaymentResult:
     payment: Payment
     confirmation_url: str
+
+
+@dataclass
+class PaymentTechnicalDataUpdate:
+    payment_method: Optional[str] = None
+    refundable: Optional[bool] = None
+    confirmation_url: Optional[str] = None
+
+    def apply_to_orm(self, orm_payment: PaymentORM) -> None:
+        for field_name, value in asdict(self).items():
+            if value is not None:
+                setattr(orm_payment, field_name, value)
 
 
 @dataclass

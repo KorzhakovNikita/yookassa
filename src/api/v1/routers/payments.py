@@ -14,7 +14,7 @@ from src.app.use_cases.payments.get_payment import GetPaymentUseCase
 from src.app.use_cases.payments.get_payment_list import GetPaymentListUseCase
 from src.app.use_cases.payments.refund_payment import RefundPaymentUseCase
 
-router = APIRouter(prefix="/payments", tags=["Payments"])
+router = APIRouter(prefix="/v1/payments", tags=["Payments"])
 
 
 @router.get(

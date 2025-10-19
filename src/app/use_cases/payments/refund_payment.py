@@ -60,8 +60,6 @@ class RefundPaymentUseCase:
                 gateway_payment_id, payment.amount.value, payment.amount.currency
             )
             #todo: cancellation_details handle with reason
-            #todo: if not cancellation_details else mark_as_failed
-            #todo: only one request to refund - handle this situation
 
             logger.info(f"Payment captured in gateway successfully")
         except BadRequestError as e:

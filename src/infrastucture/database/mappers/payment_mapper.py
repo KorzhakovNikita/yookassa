@@ -19,6 +19,7 @@ class PaymentDataMapper:
             ),
             status=PaymentStatus(orm_payment.status),
             order_id=orm_payment.order_id,
+            refundable=orm_payment.refundable,
             created_at=orm_payment.created_at,
             captured_at=orm_payment.captured_at,
             expires_at=orm_payment.expires_at,
@@ -42,6 +43,7 @@ class PaymentDataMapper:
         orm_payment.currency = payment.amount.currency
         orm_payment.status = payment.status.value
         orm_payment.order_id = payment.order_id
+        orm_payment.refundable = payment.refundable
         orm_payment.created_at = payment.created_at
         orm_payment.captured_at = payment.captured_at
         orm_payment.expires_at = payment.expires_at

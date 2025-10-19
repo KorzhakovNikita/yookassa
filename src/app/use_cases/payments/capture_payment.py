@@ -27,7 +27,7 @@ class CapturePaymentUseCase:
         payment = existing_payment.payment
         gateway_payment_id = existing_payment.gateway_payment_id
 
-        if not payment.can_be_captured():
+        if not payment.can_be_succeeded():
             raise PaymentStateError(
                 f"Cannot cancel payment with status '{payment.status.value}'. "
                 f"Only payments with status WAITING_FOR_CAPTURE that have not expired can be captured."
